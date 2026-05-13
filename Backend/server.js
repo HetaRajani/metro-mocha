@@ -40,7 +40,7 @@ const Contact = mongoose.model("Contact", ContactSchema);
 
 // ================= ROUTES =================
 app.get("/", (req, res) => {
-  res.json({ 
+  res.json({
     status: "Server is running!",
     database: mongoose.connection.readyState === 1 ? "Connected" : "Disconnected"
   });
@@ -51,7 +51,6 @@ app.post("/contact", async (req, res) => {
 
   const { name, email, message } = req.body;
 
-  // Manual Validation
   if (!name || !email || !message) {
     return res.status(400).json({ error: "All fields (name, email, message) are required" });
   }
@@ -67,13 +66,10 @@ app.post("/contact", async (req, res) => {
     console.log("✅ DATA SAVED TO MONGODB");
     res.status(200).json({ success: "Message Sent Successfully!" });
   } catch (error) {
-    // Log the full error to the terminal so you can read it
     console.error("❌ SAVE ERROR DETAIL:", error);
-
-    // Send the specific error message back to the frontend for debugging
-    res.status(500).json({ 
-      error: "Database Error", 
-      details: error.message 
+    res.status(500).json({
+      error: "Database Error",
+      details: error.message
     });
   }
 });
