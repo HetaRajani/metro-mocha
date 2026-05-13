@@ -28,7 +28,7 @@ document.addEventListener("DOMContentLoaded", () => {
       try {
 
         const response = await fetch(
-          "http://localhost:8000/contact",
+          "https://metro-mocha-backend.onrender.com/contact",
         {
 
           method:"POST",
