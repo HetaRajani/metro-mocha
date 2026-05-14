@@ -12,27 +12,25 @@ app.use(express.urlencoded({ extended: true }));
 
 // ================= MONGODB CONNECTION =================
 const mongoUri = process.env.MONGO_URI;
+console.log("MONGO_URI =", process.env.MONGO_URI);
 
 if (!mongoUri) {
-  console.error("❌ MONGO_URI is not set. Add it to Render Environment Variables or your local .env file.");
+  console.error("❌ MONGO_URI is not set. Add it in Render Environment Variables.");
   process.exit(1);
 }
 
-console.log("🔧 Using MongoDB URI:", mongoUri.startsWith("mongodb+") ? mongoUri.replace(/(mongodb\+srv:\/\/[^:]+:)[^@]+(@.*)/, "$1*****$2") : mongoUri);
-
-mongoose.connect(mongoUri)
-  .then(() => {
-    console.log("✅ MongoDB Connected Successfully");
-  })
-  .catch((err) => {
-    console.error("❌ MongoDB connection error:", err.message);
-  });
+console.log(
+  "🔧 Using MongoDB URI:",
+  mongoUri.startsWith("mongodb+srv")
+    ? "mongodb+srv://*****"
+    : mongoUri
+);
 
 // ================= SCHEMA =================
 const ContactSchema = new mongoose.Schema({
-  name: { type: String, required: [true, "Name is required"] },
-  email: { type: String, required: [true, "Email is required"] },
-  message: { type: String, required: [true, "Message content is required"] },
+  name: { type: String, required: true },
+  email: { type: String, required: true },
+  message: { type: String, required: true },
   createdAt: { type: Date, default: Date.now }
 });
 
@@ -52,11 +50,11 @@ app.post("/contact", async (req, res) => {
   const { name, email, message } = req.body;
 
   if (!name || !email || !message) {
-    return res.status(400).json({ error: "All fields (name, email, message) are required" });
+    return res.status(400).json({ error: "All fields are required" });
   }
 
   if (!email.includes("@")) {
-    return res.status(400).json({ error: "Please provide a valid email address" });
+    return res.status(400).json({ error: "Invalid email" });
   }
 
   try {
@@ -65,8 +63,9 @@ app.post("/contact", async (req, res) => {
 
     console.log("✅ DATA SAVED TO MONGODB");
     res.status(200).json({ success: "Message Sent Successfully!" });
+
   } catch (error) {
-    console.error("❌ SAVE ERROR DETAIL:", error);
+    console.error("❌ SAVE ERROR:", error);
     res.status(500).json({
       error: "Database Error",
       details: error.message
@@ -74,9 +73,24 @@ app.post("/contact", async (req, res) => {
   }
 });
 
-// ================= SERVER =================
+// ================= START SERVER AFTER DB CONNECTS =================
 const PORT = process.env.PORT || 8000;
 
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-});
+mongoose.connect(mongoUri)
+  .then(() => {
+    console.log("✅ MongoDB Connected Successfully");
+
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+    });
+
+  })
+  .catch((err) => {
+    console.error("❌ MongoDB connection error:", err);
+  });
+
+  console.log("MONGO_URI =", process.env.MONGO_URI);
+
+  mongoose.connect(process.env.MONGODB_URI)
+.then(() => console.log("MongoDB Connected"))
+.catch(err => console.log(err));
